@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#test").load("navbar.html");
+        });
+    </script>
+    <div id="test"></div>
+</head>
+
+<body>
+    </br></br>
+    <div class="container mb-5">
+        <div class="alert alert-info" role="alert">
+            <h1 class="display-6">Approve Payment</h1>
+            <p class="lead">
+                Welcome back, admin. Here're the payments that need your confirmation:
+            </p>
+            <form method="post" action="" id="form_container">
+                <table class="table table-hover">
+
+                    <script>
+                        $(document).ready(function () {
+
+                            $.ajax({
+                                async: false,
+                                type: "GET",
+                                url: "http://localhost:8080/api/v1/rental",
+                                headers: {
+                                    accept: "application/json",
+                                    "Access-Control-Allow-Origin": "*",
+                                },
+
+                                contentType: "application/json; charset=utf-8",
+                                success: function (data) {
+                                    console.log(data);
+                                    listing = data['listingid'];
+                                    request =  data['request'];
+                                    output = "";
+                                    for (let index = 0; index < data.length; index++) {
+                                        element = data[index];
+
+                                        output += "" +
+                                            "<tr>" +
+                                            "<th scope='row'>" + element["creationDate"] + "</th>" +
+                                            "<td>" + element["rentalid"] + "</td>" +
+                                            "<td>" + element["status"] + "</td>" +
+                                            "<td>"
+
+                                            if (element["status"] != "Paid") {
+                                                output += "<a type='button' value='" + element["rentalid"] +"' id='' class='approve_user_btn btn btn-success btn-sm'>Approve Payment</a>"
+                                            } else {
+                                                output += ""
+                                            }
+
+                                            
+                                            // "<a type='button' id='reject_user_btn' class='btn btn-danger btn-sm'>Reject User</a>" +
+                                            output + "</td>" + "";
+                                        "</tr>";
+
+                                    }
+                                    $("#table_container").append(output);
+
+                                },
+                                error: function (errMsg) {
+                                    // alert("error getting from : " + errMsg);
+                                },
+                            });
+
+                            $(".approve_user_btn").click(function () {
+                                dd = $(this).attr("value");
+                                console.log(dd);
+
+                                // Admin confirms the payment:
+                                $.ajax({
+                                    type: "PUT",
+                                    url: "http://localhost:8080/api/v1/rental/" + dd + "?status=Paid",
+                                    headers: {
+                                        accept: "application/json",
+                                        "Access-Control-Allow-Origin": "*",
+                                    },
+                                    // The key needs to match your method's input parameter (case-sensitive).
+                                    contentType: "application/json; charset=utf-8",
+                                    success: function (data) {
+                                        alert("Payment approved.")
+                                        // Send to user:
+                                        $.ajax({
+                                            type: "POST",
+                                            url:
+                                                "http://localhost:8080/api/v1/email?userid=5" + "&email=gordon.lim.2018@sis.smu.edu.sg" + "&token=''&type=4",
+                                            headers: {
+                                                accept: "application/json",
+                                                "Access-Control-Allow-Origin": "*",
+                                            },
+                                            contentType: "application/json; charset=utf-8",
+                                            success: function (data) {
+                                                console.log(data);
+                                            },
+                                            error: function (errMsg) {
+                                                alert("error sending email: " + errMsg);
+                                                console.log(errMsg);
+                                            },
+                                        });
+
+                                        // Send to partner
+                                        $.ajax({
+                                            type: "POST",
+                                            url:
+                                                "http://localhost:8080/api/v1/email?userid=6" + "&email=glenn.yeo.2018@sis.smu.edu.sg"+ "&token=''&type=2",
+                                            headers: {
+                                                accept: "application/json",
+                                                "Access-Control-Allow-Origin": "*",
+                                            },
+                                            contentType: "application/json; charset=utf-8",
+                                            success: function (data) {
+                                                console.log(data);
+                                            },
+                                            error: function (errMsg) {
+                                                alert("error sending email: " + errMsg);
+                                                console.log(errMsg);
+                                            },
+                                        });
+                                    },
+                                    error: function (errMsg) {
+                                        console.log("error getting from : " + errMsg);
+                                    },
+                                });
+
+                            });
+                        });;
+
+
+
+
+                    </script>
+
+                    <thead>
+                        <tr>
+                            <th scope="col">Creation Date</th>
+                            <th scope="col">Rental ID</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table_container">
+
+                    </tbody>
+                </table>
+            </form>
+
+        </div>
+    </div>
+</body>

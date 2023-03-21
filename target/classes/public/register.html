@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+    <!-- <script src="https://code.jquery.com/jquery-1.12.4.js"></script> -->
+    <script src="https://code.jquery.com/uiy/1.12.1/jquery-ui.js" integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30=" crossorigin="anonymous"></script>
+    <script>
+    $(document).ready(function () {
+        $("#test").load("navbar.html");
+    });
+    </script>
+    <div id = "test"></div>
+</head>
+<body>
+    <div></div>
+    <div class="container">
+        <img src="https://www.antbuildz.com/img/logo-w.png" style="max-height: 100px" />
+        <div class="alert alert-primary" role="alert">
+            <h1 class="display-6">Register as user</h1>
+            <p></p>
+            <div class="mb-3">
+                <label for="first_name" class="form-label">First name</label>
+                <input type="text" class="form-control" id="first_name" placeholder="eg. John" />
+            </div>
+            <div class="mb-3">
+                <label for="last_name" class="form-label">Last name</label>
+                <input type="text" class="form-control" id="last_name" placeholder="eg. Doe" />
+            </div>
+            <div class="mb-3">
+                <label for="company_name" class="form-label">Company name</label>
+                <input type="text" class="form-control" id="company_name" placeholder="eg. Pear Pte Ltd" />
+            </div>
+            <div class="mb-3">
+                <label for="phone_number" class="form-label">Phone number</label>
+                <input type="text" class="form-control" id="phone_number" placeholder="eg. 9111 5566" />
+            </div>
+
+            <div class="mb-3">
+                <label for="address" class="form-label">Address</label>
+                <input type="text" class="form-control" id="address" placeholder="eg. 81 Victoria St, Singapore 188065" />
+            </div>
+
+            <div class="mb-3">
+                <label for="username" class="form-label">Username (You will be using this to login)</label>
+                <input type="text" class="form-control" id="username" placeholder="eg. john.doe.2019" />
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" placeholder="eg. joe@user.com" />
+                <div class="valid-feedback">Looks good!</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" placeholder="eg. ********" />
+            </div>
+
+            <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+            <script>
+                $(document).ready(function () {
+
+                    $("#submit").click(function (e) {
+                        first_name = $("#first_name").val();
+                        last_name = $("#last_name").val();
+                        password = $("#password").val();
+                        email = $("#email").val();
+                        username = $("#username").val();
+                        company_name = $("#company_name").val();
+                        phone_number =$("#phone_number").val();
+                        address = $("#address").val();
+
+                        localStorage.setItem("username", username);
+                        localStorage.setItem("firstname", first_name);
+                        localStorage.setItem("lastname", last_name);
+                        localStorage.setItem("password", password);
+                        localStorage.setItem("email", email);
+
+                        localStorage.setItem("company_name", company_name);
+                        localStorage.setItem("phone_number", phone_number);
+                        localStorage.setItem("address", address);
+                        $("#submit").submit();
+                    });
+                });
+            </script>
+
+            <a href="./activate_user.html" id="submit" type="button" class="btn btn-primary">Register</a>
+            <button type="button" id="clear" class="btn btn-outline-danger">
+                Clear all fields
+            </button>
+            <button type="button" id="cancel" class="btn btn-link">
+                Cancel registration
+            </button>
+        </div>
+    </div>
+</body>
+
+</html>

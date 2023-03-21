@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<?php include 'navbar.php' ?>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#test").load("navbar.html");
+
+            // Load the attributes into the textfields:
+            $("#username").val(localStorage.getItem("username"));
+            $("#fullname").val(localStorage.getItem("name"));
+            $("#email").val(localStorage.getItem("email"));
+        });
+    </script>
+    <div id="test"></div>
+</head>
+</head>
+
+<body>
+    </br>
+    <div class="container mb-5">
+        <div class="alert alert-info" role="alert">
+            <form method="POST" action="">
+                <h1 class="display-6">My Profile</h1>
+                <br />
+                <label for="username" class="form-label">Username</label>
+                <input id="username" class="form-control" type="text" placeholder="Yeow_leong"
+                    aria-label="readonly input example" readonly>
+
+                <label for="fullname" class="form-label">Full Name</label>
+                <input id="fullname" class="form-control" type="text" placeholder="Lee Yeow Leong"
+                    aria-label="readonly input example" readonly>
+
+                <label for="email" class="form-label">Email</label>
+                <input id="email" class="form-control" type="text" placeholder="12@12.com"
+                    aria-label="readonly input example" readonly>
+                <br />
+                <a type="submit" class="btn btn-success">Ok</a>
+                <!-- <a type="submit" class="btn btn-danger">Cancel</a> -->
+            </form>
+        </div>
+    </div>
+
+
+</body>

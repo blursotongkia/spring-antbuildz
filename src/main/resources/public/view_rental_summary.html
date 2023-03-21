@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- <?php include 'navbar.php' ?> -->
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#test").load("navbar.html");
+        });
+    </script>
+    <div id="test"></div>
+</head>
+
+<body>
+    </br></br>
+    <div class="container mb-5">
+        <div class="alert alert-info" role="alert">
+            <h1 class="display-6">View Rental Summary</h1>
+            <p class="lead">
+                <small>Welcome back. View Summary of your rentals here.</br></br> Please make payment before renting
+                    your equipment. Your admin has to approve your payment before you start renting.</small>
+                <small>You need to click on "Trip Completed" in order to get your money back. </br></br>Please inform
+                    admin if he/she has not approved your payment yet.</small>
+            </p>
+            <form method="post" action="" id="form_container">
+                <table class="table table-hover">
+                    <script>
+                        $(document).ready(function () {
+
+                            userid = localStorage.getItem("userid");
+                            console.log(userid);
+
+                            $.ajax({
+                                async: false,
+                                type: "GET",
+                                url: "http://localhost:8080/api/v1/rental",
+                                headers: {
+                                    accept: "application/json",
+                                    "Access-Control-Allow-Origin": "*",
+                                },
+                                // The key needs to match your method's input parameter (case-sensitive).
+                                contentType: "application/json; charset=utf-8",
+                                success: function (data) {
+
+                                    console.log(data)
+                                    output = "";
+                                    for (let index = 0; index < data.length; index++) {
+                                        element = data[index];
+                                        console.log(element);
+
+                                        output += "" +
+                                            "<tr>" +
+                                            "<th scope='row'>" + element["rentalid"] + "</th>" +
+                                            "<td>" + element["status"] + "</td>" +
+                                            "<td>" + element["userStatus"] + "</tds>" +
+                                            "<td>" + element["partnerStatus"] + "</tds>" +
+                                            "<td>" + element["requestid"] + "</tds>" +
+                                            "<td>";
+                                        if (element["status"] != "Paid") {
+                                            output += "<a type='button' onclick='doX(" + element["rentalid"] + ")' value='testing' id='approve_user_btn' class='disabled btn btn-danger btn-sm'>Please pay before renting</a>"
+                                        } else {
+                                            output += "<a type='button' onclick='doX(" + element["rentalid"] + ")' value='testing' id='approve_user_btn"+ element["rentalid"] +"' class='btn btn-success btn-sm'>Trip Completed</a>"
+                                        }
+                                        // "<a type='button' id='reject_user_btn' class='btn btn-danger btn-sm'>Reject User</a>" +
+                                        output += "</td>" + "";
+                                        "</tr>";
+                                    }
+                                    $("#table_container").append(output);
+
+
+                                },
+                                error: function (errMsg) {
+                                    alert("error getting from : " + errMsg);
+                                },
+                            });
+                        });
+
+                        function doX(rental_id) {
+
+                            partner_id = localStorage.getItem("partner_id");
+                            
+                            person_type = "";
+                            if (partner_id == null) { // user only
+                                person_type = "user";
+                            } else {
+                                person_type = "partner";
+                            }
+
+                            $.ajax({
+                                type: "PUT",
+                                url:
+                                    "http://localhost:8080/api/v1/rental/"+ person_type +"-status/" + rental_id + "?status=Completed",
+                                headers: {
+                                    accept: "application/json",
+                                    "Access-Control-Allow-Origin": "*",
+                                },
+                                // The key needs to match your method's input parameter (case-sensitive).
+                                contentType: "application/json; charset=utf-8",
+                                success: function (data) {
+                                    alert("You have completed your rental");
+                                    $("#approve_user_btn"+ rental_id +"").hide();
+                                },
+                                error: function (errMsg) {
+                                    console.log(errMsg);
+                                },
+                            });
+                        }
+                    </script>
+
+                    <thead>
+                        <tr>
+                            <th scope="col">Rental ID</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">User Status</th>
+                            <th scope="col">Partner Status</th>
+                            <th scope="col">Request ID</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table_container">
+                    </tbody>
+                </table>
+            </form>
+
+        </div>
+    </div>
+</body>

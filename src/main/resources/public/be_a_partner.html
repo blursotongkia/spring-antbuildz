@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#test").load("navbar.html");
+        });
+    </script>
+    <div id="test"></div>
+</head>
+
+<body>
+    </br>
+    <div class="container mb-5">
+        <div class="alert alert-info" role="alert">
+            <form method="POST" action="">
+
+                Do you want to be a partner?
+                </br></br>
+                <a type="button" id="partner_yes" class="btn btn-warning">Yes! I want to be a partner</a>
+                <a type="button" class="btn btn-danger" onclick="history.back()">No! I dont want to be a partner</a>
+            </form>
+
+            <script>
+                $(document).ready(function () {
+                    $("#partner_yes").click(function () {
+                        $.ajax({
+                            type: "PUT",
+                            url: "http://localhost:8080/api/v1/user/" + userid + "/requestpartnership",
+                            headers: {
+                                accept: "application/json",
+                                "Access-Control-Allow-Origin": "*",
+                            },
+                            // The key needs to match your method's input parameter (case-sensitive).
+                            contentType: "application/json; charset=utf-8",
+                            success: function (data) {
+                                console.log(data);
+                                alert("Your request to be a partner is successful");
+                                window.location.replace("index.html")
+                                console.log(data);
+                            },
+                            error: function (errMsg) {
+                                console.log(errMsg["responseJSON"]["message"]);
+                                alert("Your request is unsucessful. Please try again.");
+                                window.location.replace("index.html")
+                            },
+                        });
+                    });
+                });
+            </script>
+        </div>
+    </div>
+
+
+</body>

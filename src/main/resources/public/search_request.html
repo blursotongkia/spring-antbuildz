@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <!-- <link rel="stylesheet" href="/resources/demos/style.css"> -->
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"
+        integrity="sha256-T0Vest3yCU7pafRw9r+settMBX6JkKN06dqBnpQ8d30=" crossorigin="anonymous"></script>
+
+    <!-- <script src="https://code.jquery.com/jquery-3.6.0.js"></script> -->
+    <script>
+        $(document).ready(function () {
+            $("#test").load("navbar.html");
+        });
+    </script>
+    <div id="test"></div>
+
+    <style>
+        .thumbnail_styling {
+            width: 90%;
+            max-width: 200px;
+            max-height: 250px;
+            min-height: 240px;
+            object-fit: contain;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+    <!-- timepicker plugin -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css">
+</head>
+<script src="//cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js"></script>
+
+<body>
+    </br>
+    <div class="container mb-5">
+        <div class="alert alert-primary" role="alert">
+            <h1 class="display-6">Search Request</h1>
+            <form method="post" action="" id="form_container">
+
+                <p id="add_fake_equipment" class="lead"> 2. Please state the dimensions of your equipment.</p>
+                <small>We will show a +/- 10% dimension based on your given values</small>
+                <div></div>
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm">
+                            <div class="input-group mb-3">
+                                <input type="number" inputmode="decimal" id="length" class="form-control"
+                                    placeholder="eg. 150" aria-label="Recipient's username"
+                                    aria-describedby="basic-addon2">
+                                <span class="input-group-text" id="basic-addon2">Length (in m)</span>
+                            </div>
+                        </div>
+                        <div class="col-sm">
+                            <div class="input-group mb-3">
+                                <input type="number" inputmode="decimal" id="width" class="form-control"
+                                    placeholder="eg. 100" aria-label="Recipient's username"
+                                    aria-describedby="basic-addon2">
+                                <span class="input-group-text" id="basic-addon2">Width (in m)</span>
+                            </div>
+                        </div>
+                        <div class="col-sm">
+                            <div class="input-group mb-3">
+                                <input type="number" inputmode="decimal" id="height" class="form-control"
+                                    placeholder="eg. 90" aria-label="Recipient's username"
+                                    aria-describedby="basic-addon2">
+                                <span class="input-group-text" id="basic-addon2">Height (in m)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <small id="validation_for_dimension"></small>
+                    <script>
+                        $(document).ready(function () {
+                            $("#customRange1").change(function () {
+                                $("#customRange_output").text($("#customRange1").val() + " tonnes");
+                            });
+                        })
+                    </script>
+
+                    <p class="lead">
+                        1. Please choose the type of transport.
+                    </p>
+                    <div id="column_container" class='row row-cols-1 row-cols-md-3 g-4'>
+                        <script>
+                            // Use Ajax to load all vehicles from DB
+                            $(document).ready(function () {
+                                $.ajax({
+                                    type: "GET",
+                                    url: "http://localhost:8080/api/v1/equipment",
+                                    headers: {
+                                        accept: "application/json",
+                                        "Access-Control-Allow-Origin": "*",
+                                    },
+                                    // The key needs to match your method's input parameter (case-sensitive).
+                                    contentType: "application/json; charset=utf-8",
+                                    success: function (data) {
+                                        // console.log(data);
+                                        data.forEach(element => {
+                                            console.log(element);
+
+                                            $("#column_container").prepend(
+                                                "" +
+                                                "<div class='col'>" +
+                                                "<div class='card h-100 text-center'>" +
+                                                "<img src='" + element["url"] + "'" +
+                                                "class='thumbnail_styling card-img-top justify-content-center align-items-center'>" +
+                                                "<div class='card-body'>" +
+                                                "<h5 class='card-title'>" + element["equipmentName"] + "</h5>" +
+                                                "<p class='card-text'>" + element["description"] + "</p>" +
+                                                "<h6 class='lead'>Full Day Price: $" + element["fullDayPrice"] + "</h6>" +
+                                                "<small>Height * Length * Width:</small></br>" +
+                                                "<small>" + element["height"] + "m * " + element["length"] + "m * " + element["width"] + "m" + "</small>" +
+                                                "<h6 class='lead'>Per Hour Price: $" + element["perHrPrice"] + "</h6>" +
+                                                "<h6 class='lead'>Per Trip Price Price: $" + element["perTripPrice"] + "</h6>" +
+                                                "<h6 class='lead'>Rate After 10pm Price: $" + element["rateAfter10Price"] + "</h6>" +
+                                                "<h6 class='lead'>Rate After 5pm Price: $" + element["rateAfter5Price"] + "</h6>" +
+
+                                                "<div class=''>" +
+                                                "<input class='form-check-input' type='radio' value='" + element["equipmentName"] + "|||||" + element["url"] + "|||||" + element["height"] + "|||||" + element["length"] + "|||||" + element["width"] + "|||||" + element["equipmentID"] + "' name='flexRadioDefault'" +
+                                                "id='" + element["equipmentID"] + "'>" +
+                                                "<label class='form-check-label' for='" + element["equipmentID"] + "'>Choose</label>" +
+                                                "</div>" +
+                                                "</div>" +
+                                                "<div class='card-footer'><small class='text-muted'>Last updated 3 mins ago</small></div>" +
+                                                "</div>" +
+                                                "</div>" +
+                                                "");
+                                        });
+                                    },
+                                    error: function (errMsg) {
+                                    },
+                                });
+                            });
+                        </script>
+                    </div>
+                    <script>
+                        $(document).ready(function () {
+                            $("#length").val(0);
+                            $("#width").val(0);
+                            $("#height").val(0);
+
+                            // This triggers when the user fills in his/her dimension request
+                            $("#height").add("#width").add("#length").change(function () {
+                                length_wanted = $("#length").val();
+                                width_wanted = $("#width").val();
+                                height_wanted = $("#height").val();
+
+                                $.ajax({
+                                    type: "GET",
+                                    url: "http://localhost:8080/api/v1/equipment/dimensions?height=" + height_wanted + "&width=" + width_wanted + "&length=" + length_wanted + "",
+                                    headers: {
+                                        accept: "application/json",
+                                        "Access-Control-Allow-Origin": "*",
+                                    },
+                                    // The key needs to match your method's input parameter (case-sensitive).
+                                    contentType: "application/json; charset=utf-8",
+                                    success: function (data) {
+                                        count = 0;
+                                        for (let index = 0; index < data.length; index++) {
+                                            count++;
+                                        }
+                                        $("#validation_for_dimension").text("We may have " + count + " equipment(s) eligible based on your dimension requirements.")
+                                    },
+                                    error: function (errMsg) {
+                                    },
+                                });
+                            });
+                        });
+                    </script>
+
+                    <script>
+                        $(document).ready(function () {
+                            // This is to add a fake POST for debugging purposes:
+                            $("#add").click(function () {
+                                var myObject = new Object();
+                                myObject.equipmentName = "Truck";
+                                myObject.height = 100;
+                                myObject.length = 100;
+                                myObject.width = 100;
+                                myObject.transportID = 1;
+
+                                var myString = JSON.stringify(myObject);
+
+                                $.ajax({
+                                    type: "POST",
+                                    url: "http://localhost:8080/api/v1/equipment",
+                                    headers: {
+                                        accept: "application/json",
+                                        "Access-Control-Allow-Origin": "*",
+                                    },
+                                    // The key needs to match your method's input parameter (case-sensitive).
+                                    data: myString,
+                                    contentType: "application/json; charset=utf-8",
+                                    success: function (data) {
+
+                                    },
+                                    error: function (errMsg) {
+                                    },
+                                });
+                            });
+                        });
+                    </script>
+                    </br></br>
+
+                    <p class="lead">
+                        6. How many you want?!
+                    </p>
+
+                    <div class="input-group mb-3">
+                        <input id="quantity_input" type="number" class="form-control"
+                            placeholder="Whole numbers only please. We can't give you 1.5 lorries"
+                            aria-label="Whole numbers only please. We can't give you 1.5 lorries"
+                            aria-describedby="basic-addon2">
+                        <span class="input-group-text" id="basic-addon2">Equipments</span>
+                    </div>
+
+                    <p class="lead">
+                        6. How are you going to rent it?
+                    </p>
+
+                    <div class="alert alert-light" role="alert">
+                        <p class="lead">The cost of the various equipments are based on the table below, using a Lorry
+                            Crane as an example:</p>
+                        <img src="/images/cost_breakdown.png" class="img-fluid" alt="...">
+
+                        <div class="form-check">
+                            <input required value="Per Trip" class="flexRadioDefault_usage_method form-check-input"
+                                type="radio" name="flexRadioDefault_usage_method" id="flexRadioDefault1">
+                            <label class="form-check-label" for="flexRadioDefault1">Per Trip - One trip has to be < 3
+                                    hours. You will be charged $0.99 for the trip.</label>
+                                    </br>
+                                    <small>You can start 'Per trip' from 8pm to 2pm only.</small>
+                                    <div class="row align-items-start">
+                                        <div class="col">
+                                            <div class="alert alert-info" role="alert">
+                                                <h1 class="h6">Start Date:</h1>
+                                                <p>Start Date: <input type="text" id="datepicker_start1"></p>
+                                                <small>What time start?</small>
+                                                <input id="timepicker_start1"
+                                                    class="timepicker timepicker-with-dropdown text-center">
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="alert alert-info" role="alert">
+                                                <h1 class="h6">End date:
+                                                </h1>
+                                                <p>End Date: <input disabled type="text" id="datepicker_end1"></p>
+                                                <small>What time end?</small>
+                                                <input disabled id="timepicker_end1"
+                                                    class="timepicker timepicker-with-dropdown text-center">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <script>
+
+
+                                    </script>
+                        </div>
+                        <hr>
+                        <div class="form-check">
+                            <input value="Full Day" class="flexRadioDefault_usage_method form-check-input" type="radio"
+                                name="flexRadioDefault_usage_method" id="flexRadioDefault2">
+                            <label class="form-check-label" for="flexRadioDefault2">Full Day - One full day is
+                                equivalent of 8 hours. When do you want to start your rental?</label>
+                            </br>
+                            <small>Full day has a standard time of 8am to 12pm and 1pm to 5pm (8 hours total)</small>
+
+                            <div class="row align-items-start">
+                                <div class="col">
+                                    <div class="alert alert-info" role="alert">
+                                        <h1 class="h6">Start Date:</h1>
+                                        <p>Start Date: <input type="text" id="datepicker_start2"></p>
+                                        <small>What time start?</small>
+                                        <input disabled class="timepicker timepicker-with-dropdown text-center">
+                                        </br>
+                                        <small>Timepicker is disabled as the timing to rent is fixed.</small>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="alert alert-info" role="alert">
+                                        <h1 class="h6">End date:
+                                        </h1>
+                                        <p>End Date: <input type="text" id="datepicker_end2"></p>
+                                        <small>What time end?</small>
+                                        <input disabled
+                                            class="timepicker timepicker timepicker-with-dropdown text-center">
+                                        </br>
+                                        <small>Timepicker is disabled as the timing to rent is fixed.</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <hr>
+                        <div class="form-check">
+                            <input value="Custom" class="form-check-input flexRadioDefault_usage_method" type="radio"
+                                name="flexRadioDefault_usage_method" id="flexRadioDefault3">
+                            <label class="form-check-label" for="flexRadioDefault3">Custom - State your desired start
+                                rental date and time and end rental date and time.</label>
+                            </br>
+                            <small>(Put the same date if you're returning on the same day.)</small>
+                            <div class="row align-items-start">
+                                <div class="col">
+                                    <div class="alert alert-info" role="alert">
+                                        <h1 class="h6">Start Date:</h1>
+                                        <p>Start Date: <input type="text" id="datepicker_start3"></p>
+                                        <small>What time start?</small>
+                                        <input id="timepicker_start3"
+                                            class="timepicker timepicker timepicker-with-dropdown text-center">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="alert alert-info" role="alert">
+                                        <h1 class="h6">End date:
+                                        </h1>
+                                        <p>End Date: <input type="text" id="datepicker_end3"></p>
+                                        <small>What time end?</small>
+                                        <input id="timepicker_end3"
+                                            class="timepicker timepicker timepicker-with-dropdown text-center">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p> </p>
+
+                    <script>
+                        $(function () {
+                            $("#datepicker_start1").datepicker();
+                            $("#datepicker_end1").datepicker();
+                            $("#datepicker_start2").datepicker();
+                            $("#datepicker_end2").datepicker();
+                            $("#datepicker_start3").datepicker();
+                            $("#datepicker_end3").datepicker();
+                        });
+
+                        $(document).ready(function () {
+                            $("input#timepicker_start1").timepicker({
+                                minTime: "8",
+                                maxHour: "14",
+                                scrollbar: true,
+                                timeFormat: "HH:mm"
+                            });
+
+                            $('input.timepicker').timepicker({
+                                scrollbar: true,
+                                timeFormat: "HH:mm"
+                            });
+                        });
+                    </script>
+                    <p id="testing_div" class="lead">
+                        6. From where to where?
+                    </p>
+                    <div class="input-group mb-3">
+                        <input type="text" id="from_location" class="form-control" placeholder="Postalcode eg. 456789"
+                            aria-label="Recipient's username" aria-describedby="basic-addon2">
+                        <span class="input-group-text" id="basic-addon2">From location</span>
+                    </div>
+                    <div class="input-group mb-3">
+                        <input type="text" id="to_location" class="form-control" placeholder="Postalcode eg. 345667"
+                            aria-label="Recipient's username" aria-describedby="basic-addon2">
+                        <span class="input-group-text" id="basic-addon2">To location</span>
+                    </div>
+
+
+
+                    <p id="testing_div" class="lead">
+                        7. Any special requests?
+                    </p>
+
+                    <div class="mb-3">
+                        <!-- <label for="exampleFormControlTextarea1" class="form-label">Special requests in here..</label> -->
+                        <textarea id="text_area" class="form-control" placeholder="eg. Call me at xxxx xxxx"
+                            id="exampleFormControlTextarea1" rows="3"></textarea>
+                    </div>
+                    <a id="confirm" type="button" class="btn btn-info">Find eligible equipments!</a>
+                    </br></br>
+                    <div class="alert alert-warning" role="alert">
+                        <h1 class="display-6">Summary</h1>
+
+                        <p id="quantity_output" class="lead">You want a:</p>
+                        <div id="summary"></div>
+                        <script>
+
+
+                            function retrievedatetime() {
+
+                            }
+
+                            $("#confirm").click(function () {
+
+                                start_location = $("#from_location").val();
+                                end_location = $("#to_location").val();
+
+
+
+
+                                some_string = " ||||| ";
+                                some_string = $('input[name="flexRadioDefault"]:checked').val();
+                                var splitted_array = some_string.split("|||||");
+                                console.log(splitted_array);
+
+                                special_request = $("#text_area").val();
+                                pricing_type = $('input[name="flexRadioDefault_usage_method"]:checked').val();
+                                console.log(pricing_type)
+
+
+
+                                start_date = ""
+                                start_time = ""
+                                end_date = ""
+                                end_date = ""
+
+                                if (pricing_type == "Custom") { // startdatetime and end datetime is needed
+                                    start_date = $("#datepicker_start3").val();
+                                    start_time = $("#timepicker_start3").val();
+
+                                    end_date = $("#datepicker_end3").val();
+                                    end_time = $("#timepicker_end3").val();
+
+                                } else if (pricing_type == "Full Day") {  // Full day - Only start date and end date required
+                                    start_date = $("#datepicker_start2").val();
+
+                                    start_time = "08:00";
+
+                                    end_date = $("#datepicker_end2").val();
+
+                                    end_time = "17:00";
+
+                                } else { // Per trip - Only start date and start time required
+                                    start_date = $("#datepicker_start1").val();
+                                    start_time = $("#timepicker_start1").val();
+
+                                    end_date = "00/00/0000";
+                                    end_time = "00:00";
+
+
+                                }
+                                start_datetime = start_date + " " + start_time;
+                                end_datetime = end_date + " " + end_time;
+                                console.log(start_datetime)
+                                console.log(end_datetime)
+
+                                quantity_input = $("#quantity_input").val();
+                                $("#quantity_output").html("You want " + quantity_input);
+
+                                localStorage.setItem("user_wants_equipment", splitted_array[0]);
+                                localStorage.setItem("user_wants_url", splitted_array[1]);
+                                localStorage.setItem("user_wants_width", width_wanted);
+                                localStorage.setItem("user_wants_length", length_wanted);
+                                localStorage.setItem("user_wants_height", height_wanted);
+                                localStorage.setItem("user_wants_start_datetime", start_datetime);
+                                localStorage.setItem("user_wants_end_datetime", end_datetime);
+                                localStorage.setItem("user_wants_special_requests", special_request);
+                                localStorage.setItem("user_wants_pricing_type", pricing_type);
+                                localStorage.setItem("user_wants_equipment_id", splitted_array[5]);
+                                localStorage.setItem("user_wants_quantity", quantity_input);
+                                localStorage.setItem("user_wants_start_location", start_location)
+                                localStorage.setItem("user_wants_end_location", end_location)
+
+
+                                console.log("from:" + start_date + " " + start_time + " to: " + end_date + " " + end_time)
+
+                                if (pricing_type == "Per Trip") {
+                                    $("#summary").html(
+                                        "" +
+                                        "<div class='col'>" +
+                                        "<div class='card h-100 text-center'>" +
+                                        "<img src='" + localStorage.getItem("user_wants_url") + "'" +
+                                        "class='thumbnail_styling card-img-top justify-content-center align-items-center'>" +
+                                        "<div class='card-body'>" +
+                                        "<h5 class='card-title'>" + localStorage.getItem("user_wants_equipment") + "</h5>" +
+                                        "<p class='card-text'></p>" +
+                                        // "<h6 class='lead'>Full Day Price of $" + localStorage.getItem("user_wants_equipment") + "</h6>" +
+
+                                        "<small>It's dimensions are:</small></br>" +
+                                        "<small>" + splitted_array[2] + "(height) m * " + splitted_array[3] + "(length) m * " + splitted_array[4] + "(width) m" + "</small>" +
+                                        "</br></br>" +
+                                        "<small>.. and your request dimensions are.. </small></br>" +
+                                        "<small>" + localStorage.getItem("user_wants_height") + "(height) m * " + localStorage.getItem("user_wants_length") + "(length) m * " + localStorage.getItem("user_wants_width") + "(width) m" + "</small>" +
+                                        "</br></br>" +
+                                        "<h6 class='lead'>You chose a pricing structure of: " + localStorage.getItem("user_wants_pricing_type") + "</h6>" +
+                                        "<h6 class='lead'>Your start Rental Date is on " + start_date + " at " + start_time + "</h6>" +
+                                        "<h6 class='lead'>And your end Rental Date is on: " + start_date + " 3 hours later from " + start_time + "</h6>" +
+                                        "</br>" +
+                                        "<h6 class='label'>You have additional comments of:- </br>" + $("#text_area").val() + "</h6>" +
+
+                                        // "<a id='submit_req_btn' type='button' class='btn btn-success'>Submit Request for this " + localStorage.getItem("user_wants_equipment") + "</a>" +
+
+                                        "</div>" +
+                                        "<div class='card-footer'><small class='text-muted'>Last updated 3 mins ago</small></div>" +
+                                        "</div>" +
+                                        "</div>" +
+                                        "");
+                                } else if (pricing_type == "Full Day") {
+                                    $("#summary").html(
+                                        "" +
+                                        "<div class='col'>" +
+                                        "<div class='card h-100 text-center'>" +
+                                        "<img src='" + localStorage.getItem("user_wants_url") + "'" +
+                                        "class='thumbnail_styling card-img-top justify-content-center align-items-center'>" +
+                                        "<div class='card-body'>" +
+                                        "<h5 class='card-title'>" + localStorage.getItem("user_wants_equipment") + "</h5>" +
+                                        "<p class='card-text'></p>" +
+                                        // "<h6 class='lead'>Full Day Price of $" + localStorage.getItem("user_wants_equipment") + "</h6>" +
+
+                                        "<small>It's dimensions are:</small></br>" +
+                                        "<small>" + splitted_array[2] + "(height) m * " + splitted_array[3] + "(length) m * " + splitted_array[4] + "(width) m" + "</small>" +
+                                        "</br></br>" +
+                                        "<small>.. and your request dimensions are.. </small></br>" +
+                                        "<small>" + localStorage.getItem("user_wants_height") + "(height) m * " + localStorage.getItem("user_wants_length") + "(length) m * " + localStorage.getItem("user_wants_width") + "(width) m" + "</small>" +
+                                        "</br></br>" +
+                                        "<h6 class='lead'>You chose a pricing structure of: " + localStorage.getItem("user_wants_pricing_type") + "</h6>" +
+                                        "<h6 class='lead'>Your start Rental Date is on " + start_date + " at 8am</h6>" +
+                                        "<h6 class='lead'>And your end Rental Date is on: " + end_date + " at 5pm</h6>" +
+                                        "</br>" +
+                                        "<h6 class='label'>You have additional comments of:- </br>" + $("#text_area").val() + "</h6>" +
+
+                                        // "<a id='submit_req_btn' type='button' class='btn btn-success'>Submit Request for this " + localStorage.getItem("user_wants_equipment") + "</a>" +
+
+                                        "</div>" +
+                                        "<div class='card-footer'><small class='text-muted'>Last updated 3 mins ago</small></div>" +
+                                        "</div>" +
+                                        "</div>" +
+                                        "");
+                                } else if (pricing_type == "Custom") {
+                                    $("#summary").html(
+                                        "" +
+                                        "<div class='col'>" +
+                                        "<div class='card h-100 text-center'>" +
+                                        "<img src='" + localStorage.getItem("user_wants_url") + "'" +
+                                        "class='thumbnail_styling card-img-top justify-content-center align-items-center'>" +
+                                        "<div class='card-body'>" +
+                                        "<h5 class='card-title'>" + localStorage.getItem("user_wants_equipment") + "</h5>" +
+                                        "<p class='card-text'></p>" +
+                                        // "<h6 class='lead'>Full Day Price of $" + localStorage.getItem("user_wants_equipment") + "</h6>" +
+
+                                        "<small>It's dimensions are:</small></br>" +
+                                        "<small>" + splitted_array[2] + "(height) m * " + splitted_array[3] + "(length) m * " + splitted_array[4] + "(width) m" + "</small>" +
+                                        "</br></br>" +
+                                        "<small>.. and your request dimensions are.. </small></br>" +
+                                        "<small>" + localStorage.getItem("user_wants_height") + "(height) m * " + localStorage.getItem("user_wants_length") + "(length) m * " + localStorage.getItem("user_wants_width") + "(width) m" + "</small>" +
+                                        "</br></br>" +
+                                        "<h6 class='lead'>You chose a pricing structure of: " + localStorage.getItem("user_wants_pricing_type") + "</h6>" +
+                                        "<h6 class='lead'>Your start Rental Date is on " + start_date + " at " + start_time + "</h6>" +
+                                        "<h6 class='lead'>And your end Rental Date is on: " + end_date + " at " + end_time + "</h6>" +
+                                        "</br>" +
+                                        "<h6 class='label'>You have additional comments of:- </br>" + $("#text_area").val() + "</h6>" +
+
+                                        // "<a id='submit_req_btn' type='button' class='btn btn-success'>Submit Request for this " + localStorage.getItem("user_wants_equipment") + "</a>" +
+
+                                        "</div>" +
+                                        "<div class='card-footer'><small class='text-muted'>Last updated 3 mins ago</small></div>" +
+                                        "</div>" +
+                                        "</div>" +
+                                        "");
+                                }
+
+
+                            })
+                        </script>
+                        <a id='submit_req_btn' type='button' class='btn btn-success'>Submit Request</a>
+                        <script>
+                            $(document).ready(function () {
+                                $('#submit_req_btn').click(function () {
+                                    var myObject3 = new Object();
+                                    myObject3.startDateTime = localStorage.getItem("user_wants_start_datetime");
+                                    myObject3.endDateTime = localStorage.getItem("user_wants_end_datetime");
+                                    myObject3.specialRequest = localStorage.getItem("user_wants_special_requests");
+                                    myObject3.pricingType = localStorage.getItem("user_wants_pricing_type");
+                                    myObject3.quantity = localStorage.getItem("user_wants_quantity");
+                                    myObject3.userid = localStorage.getItem("userid");
+                                    myObject3.equipmentID = localStorage.getItem("user_wants_equipment_id");
+                                    myObject3.startLocation = localStorage.getItem("user_wants_start_location");
+                                    myObject3.endLocation = localStorage.getItem("user_wants_end_location");
+
+
+                                    var myString3 = JSON.stringify(myObject3);
+                                    $.ajax({
+                                        type: "POST",
+                                        url:
+                                            "http://localhost:8080/api/v1/request",
+                                        headers: {
+                                            accept: "application/json",
+                                            "Access-Control-Allow-Origin": "*",
+                                        },
+
+                                        data: myString3,
+                                        contentType: "application/json; charset=utf-8",
+                                        success: function (data) {
+                                            alert("Successfully sent your request.");
+
+                                            // Send email to ALL partners
+                                            $.ajax({
+                                                type: "POST",
+                                                url:
+                                                    "http://localhost:8080/api/v1/email?email=0&userid=0&token=0&type=1",
+                                                headers: {
+                                                    accept: "application/json",
+                                                    "Access-Control-Allow-Origin": "*",
+                                                },
+
+                                                contentType: "application/json; charset=utf-8",
+                                                success: function (data) {
+                                                    alert("success on sending email: " + data);
+                                                },
+                                                error: function (errMsg) {
+                                                    console.log(errMsg);
+                                                },
+                                            });
+                                        },
+                                        error: function (errMsg) {
+                                            console.log(errMsg);
+                                        },
+                                    });
+                                });
+                            });
+                        </script>
+                    </div>
+                    <button type="button" class="btn btn-outline-danger">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,143 @@
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
+    crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+
+<link rel="icon" href="https://thumbs.dreamstime.com/b/creative-logo-typography-small-letter-icon-101615690.jpg">
+
+<script>
+    $(document).ready(function () {
+        username = localStorage.getItem("username");
+        // console.log(username)
+
+        if (localStorage.getItem("username") == null) {
+            $("#navbarDropdown").text("Hello, Guest");
+            $("#bidding_results_btn").hide();
+        } else {
+            $("#navbarDropdown").text("Hello, " + username);
+            $("#bidding_results_btn").show();
+        }
+    });
+</script>
+
+<nav sticky-top class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <!-- <a class="navbar-brand" href="#">Navbar</a> -->
+        <a class="navbar-brand" href="https://www.antbuildz.com">
+            <img src="https://www.antbuildz.com/img/logo-w.png" alt="" height="24" class="d-inline-block align-top">
+        </a>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="./index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="./search_request.html">Search</a>
+                </li>
+                <li id="bidding_results_btn" class="nav-item">
+                    <a class="nav-link" href="./view_bidding_results.html">View bidding results</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown" id="dropdown_menu">
+
+                        <script>
+                            if (localStorage.getItem("username") == null) { // Check if the user is logged in or not
+                                $("#dropdown_menu").html("<li><a class='dropdown-item' href='./register.html'>Register</a></li><li><a class='dropdown-item' href='./login.html'>Login</a></li>")
+                            } else {
+                                $("#dropdown_menu").html("<li><a class='dropdown-item' href='./my_profile.html'>My Profile</a></li><li><a id='partner_btn' class='dropdown-item' href='./be_a_partner.html'>Be a partner !</a></li><li><hr class='dropdown-divider'></li><li><a id='logout_btn' class='dropdown-item' href='./index.html'>Logout</a></li>");
+                            }
+
+                            $(document).ready(function () {
+                                $("#logout_btn").click(function () {
+                                    localStorage.clear();
+                                    alert("You have been logged out");
+                                });
+                            });
+                        </script>
+
+                    </ul>
+                </li>
+                <!-- <li class="nav-item">
+                    <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Partner</a>
+                </li> -->
+
+                <li id="list_index" class="nav-item">
+
+                    <script>
+                        $(document).ready(function () {
+                            
+                            if (localStorage["userid"] || localStorage["adminid"]) { // Check if user is logged in...
+
+                                // Check if logged in user is an admin
+                                console.log("adminid: " + localStorage.getItem("adminid"));
+                                if (localStorage.getItem("adminid") == null) { // If it's user or partner,
+                                    console.log("email activated? " + localStorage.getItem("activated"));
+                                    // Check if a user has verified email
+                                    if (localStorage.getItem("activated") == "true") {
+                                        $("#list_index").append("    <span class='badge rounded-pill bg-success'>Email Verified</span></a>");
+                                    } else {
+                                        $("#list_index").append("    <span class='badge rounded-pill bg-warning text-dark'>Email Unverified</span></a>");
+                                    }
+                                    $("#list_index").append("<a href='view_rental_summary.html'><span id='user_status' class='badge rounded-pill bg-info text-dark' value='user'>User: View Rental Summary</span></a>");
+                                    // Use ajax to determine if the user is an approved partner too
+                                    userid = localStorage.getItem("userid");
+                                    $.ajax({
+                                        type: "GET",
+                                        url: "http://localhost:8080/api/v1/partner/user/" + userid,
+                                        headers: {
+                                            accept: "application/json",
+                                            "Access-Control-Allow-Origin": "*",
+                                        },
+
+                                        contentType: "application/json; charset=utf-8",
+                                        success: function (data) { // A verified partner already
+                                            console.log("partner id: " + data["partnerid"]);
+                                            localStorage.setItem("partner_id", "true");
+                                            localStorage.setItem("partner_id2", data["partnerid"]);
+                                            $("#list_index").append("<a href='all_requests_from_user.html'><span id='user_status' class='badge rounded-pill bg-primary'>Verified partner: (View all user requests)</span></a>");
+                                            $("#list_index").append("<a href='list_new_equipment.html'><span id='user_status' class='badge rounded-pill bg-warning text-dark'>Verified partner: (List new equipment)</span></a>");
+
+                                            // Need to hide the 'be a partner' btn:
+                                            $("#partner_btn").hide();
+                                        },
+                                        error: function (errMsg) { // Still a user - Still requesting to be a partner
+                                            console.log(errMsg);
+                                            console.log("partner request: " + localStorage.getItem("partnerRequest"));
+                                            if (localStorage.getItem("partnerRequest") == "true") {
+                                                $("#list_index").append("<span id='user_status' class='badge rounded-pill bg-warning text-dark'>Unverified partner</span>");
+                                            } else {
+                                                $("#list_index").append("<span id='user_status' class='badge rounded-pill bg-info text-dark' value='user'>User</span>");
+                                                
+                                            }
+                                        },
+                                    });
+                                } else { // means it's an admin
+                                    $("#list_index").append("<a id='status_part' href='approve_users.html' type='button'" +
+                                        "class='form-control btn btn-outline-primary'>Approve users");
+                                    $("#partner_btn").hide();
+
+                                    $("#list_index2").append("<a id='status_payment' href='approve_payment.html' type='button'" +
+                                        "class='form-control btn btn-outline-primary'>Approve payments");
+                                }
+                            }
+
+                            console.log(localStorage);
+                        });
+                    </script>
+
+                </li>
+                <li id="list_index2" class="nav-item"></li>
+            </ul>
+            <form class="d-flex">
+                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+        </div>
+    </div>
+</nav>

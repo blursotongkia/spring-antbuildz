@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
+        crossorigin="anonymous"></script>
+
+    <!-- This is to write into database: -->
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script>
+        $(document).ready(function () {
+
+            console.log(sessionStorage);
+
+            // To test if the URL has token params
+            searchParams = new URLSearchParams(window.location.search);
+            console.log(localStorage);
+            if (searchParams.has("token")) {
+                token_from_url = searchParams.get("token");
+                userid_from_url = searchParams.get("userid");
+
+                console.log(localStorage.getItem("userid"));
+
+                $("#activate_input").val(token_from_url);
+            } else { // URL does NOT have token params in URL: Means the user just registered.
+                username = localStorage.getItem("username");
+                first_name = localStorage.getItem("firstname");
+                last_name = localStorage.getItem("lastname");
+                password = localStorage.getItem("password");
+                email = localStorage.getItem("email");
+
+                company_name = localStorage.getItem("company_name");
+                phone_number = localStorage.getItem("phone_number");
+                address = localStorage.getItem("address");
+                
+                let headers = new Headers();
+                headers.append("Content-Type", "application/json");
+                headers.append("Accept", "application/json");
+                headers.append("Access-Control-Allow-Origin", "*");
+                headers.append("Access-Control-Allow-Credentials", "true");
+
+                var myObject = new Object();
+                myObject.name = first_name + " " + last_name;
+                myObject.username = username;
+                myObject.password = password;
+                myObject.email = email;
+
+                myObject.companyName = company_name;
+                myObject.phoneNumber = phone_number;
+                myObject.address = address;
+
+                console.log(myObject);
+
+                var myString = JSON.stringify(myObject);
+
+                userid = "";
+                token = "";
+                email = "";
+                type = 0;
+
+                // 1. This is to send user's data to DB
+                $.ajax({
+                    async: false,
+                    type: "POST",
+                    url: "http://localhost:8080/api/v1/user",
+                    headers: {
+                        accept: "application/json",
+                        "Access-Control-Allow-Origin": "*",
+                    },
+                    // The key needs to match your method's input parameter (case-sensitive).
+                    data: myString,
+                    contentType: "application/json; charset=utf-8",
+                    success: function (data) {
+
+                        console.log(data["token"]);
+                        console.log(data["userid"]);
+                        console.log(data["email"]);
+                        
+                        
+                        // Prepare data for verification email
+                        token = data["token"];
+                        userid = data["userid"];
+                        email = data["email"];
+
+                        var myObject2 = new Object();
+                        myObject2.userid = userid;
+                        myObject2.token = token;
+                        myObject2.email = email;
+                        myObject2.type = 0;
+                        
+                        console.log(myObject2);
+
+                        // Set userid in localstorage
+                        localStorage.setItem("userid", userid);
+
+                        var myString2 = JSON.stringify(myObject2);
+                        $.ajax({
+                            async: false,
+                            type: "POST",
+                            url:
+                                "http://localhost:8080/api/v1/email?userid=" + userid + "&email=" + email + "&token=" + token + "&type=" + 0,
+                            headers: {
+                                accept: "application/json",
+                                "Access-Control-Allow-Origin": "*",
+                            },
+
+                            // data: myString2,
+                            contentType: "application/json; charset=utf-8",
+                            success: function (data) {
+
+                                console.log(data);
+                            },
+                            error: function (errMsg) {
+
+                                console.log(errMsg);
+                            },
+                        });
+                    },
+                    error: function (errMsg) {
+
+                    },
+                });
+            }
+            $("#submit").click(function () {
+
+                $.ajax({
+                    async: false,
+                    type: "PUT",
+                    url:
+                        "http://localhost:8080/api/v1/user/" + userid_from_url + "/verification/?token=" + token_from_url,
+                    headers: {
+                        accept: "application/json",
+                        "Access-Control-Allow-Origin": "*",
+                    },
+
+                    contentType: "application/json; charset=utf-8",
+                    success: function (data) {
+                        alert("success");
+                        localStorage.setItem("activated", true);
+                        console.log(localStorage);
+                        window.location.replace("./index.html");
+                    },
+                    error: function (errMsg) {
+
+                    },
+                });
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <div></div>
+    <div class="container">
+        <img src="https://www.antbuildz.com/img/logo-w.png" style="max-height: 100px" />
+        <div class="alert alert-primary" role="alert">
+            <h1 class="display-6">Activate your account</h1>
+            <p></p>
+            <p class="lead">
+                We just sent you an activation code via email. Please key in here to
+                activate your account.
+            </p>
+            <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">Activation code:</label>
+                <input type="text" class="form-control" id="activate_input" placeholder="eg. k34r#!ccd2454" />
+            </div>
+
+            <a id="submit" type="button" class="btn btn-primary">Submit</a>
+            <a id="clear" type="button" class="btn btn-outline-danger">
+                Clear all fields
+            </a>
+            <a id="skip" href="index.html" type="button" class="btn btn-primary-outline">Skip ></a>
+            <!-- <button type="button" class="btn btn-link">Cancel registration</button> -->
+        </div>
+    </div>
+</body>
+
+</html>

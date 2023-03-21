@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- <?php include 'navbar.php' ?> -->
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#test").load("navbar.html");
+        });
+    </script>
+    <div id="test"></div>
+
+    <style>
+        img {
+            display: block;
+            max-width: 230px;
+            max-height: 95px;
+            width: auto;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+    </br></br>
+    <div class="container mb-5">
+        <div class="alert alert-info" role="alert">
+            <h1 class="display-6">List new equipment</h1>
+            <p class="lead">
+                Hi there. You can list new equipment here!
+            </p>
+            <form method="post" action="" id="form_container">
+                <table class="table table-hover">
+                    <script>
+                        $(document).ready(function () {
+
+                            userid = localStorage.getItem("userid");
+                            console.log(userid);
+
+                            $.ajax({
+                                async: false,
+                                type: "GET",
+                                url: "http://localhost:8080/api/v1/equipment",
+                                headers: {
+                                    accept: "application/json",
+                                    "Access-Control-Allow-Origin": "*",
+                                },
+                                // The key needs to match your method's input parameter (case-sensitive).
+                                contentType: "application/json; charset=utf-8",
+                                success: function (data) {
+
+
+                                    output = "";
+                                    for (let index = 0; index < data.length; index++) {
+                                        element = data[index];
+
+
+                                        output += "" +
+                                            "<tr>" +
+                                            "<td>" + element["equipmentID"] + "</tds>" +
+                                            "<th scope='row'><img src='" + element["url"] + "'></th>" +
+                                            "<td>" + element["equipmentName"] + "</br><small>" + element["description"] + "</small></td>" +
+                                            "<td><small>" + element["height"] + "(Height)</br>" + element["length"] + "(Length)</br>" + element["width"] + "(Width)</br></small></tds>" +
+                                            "<td>$" + element["perTripPrice"] + "/trip</tds>" +
+                                            "<td>$" + element["perHrPrice"] + "/hr</tds>" +
+                                            "<td>$" + element["fullDayPrice"] + "/day</tds>" +
+                                            "<td>$" + element["rateAfter5Price"] + "/hr</tds>" +
+                                            "<td>$" + element["rateAfter10Price"] + "/hr</tds>" +
+                                            "<td>$" + element["sundayPHPrice"] + "/day</tds>" +
+                                            "<td>" +
+                                            "<a type='button' value='" + localStorage.getItem("partner_id2") + "|||||" + element["equipmentID"] + "' id='' class='approve_user_btn btn btn-success btn-sm'>List equipment</a>" +
+                                            // "<a type='button' id='reject_user_btn' class='btn btn-danger btn-sm'>Reject User</a>" +
+                                            "</td>" + "";
+                                        "</tr>";
+                                    }
+                                    $("#table_container").append(output);
+
+
+                                    $(".approve_user_btn").click(function () {
+
+
+                                        ss = $(this).attr("value");
+                                        splitted_array = ss.split("|||||"); // 0 - userid, 1 - equipid
+                                        console.log(splitted_array)
+
+
+                                        // API POST AJAX to list new equipment
+                                        var myObject2 = new Object();
+                                        myObject2.equipmentid = splitted_array[1];
+                                        myObject2.partnerid = splitted_array[0];
+
+                                        console.log(myObject2);
+
+                                        var myString2 = JSON.stringify(myObject2);
+                                        $.ajax({
+                                            type: "POST",
+                                            url:
+                                                "http://localhost:8080/api/v1/listing",
+                                            headers: {
+                                                accept: "application/json",
+                                                "Access-Control-Allow-Origin": "*",
+                                            },
+
+                                            data: myString2,
+                                            contentType: "application/json; charset=utf-8",
+                                            success: function (data) {
+
+                                                alert("successfully listed equipment")
+                                                console.log(data)
+                                            },
+                                            error: function (errMsg) {
+
+                                                console.log("cannot list equipment");
+                                                console.log(errMsg)
+                                            },
+                                        });
+
+                                    })
+
+                                },
+                                error: function (errMsg) {
+                                    alert("error getting from : " + errMsg);
+                                },
+                            });
+                        });
+                    </script>
+
+                    <thead>
+                        <tr>
+                            <th scope="col">E. id</th>
+                            <th scope="col">Picture</th>
+                            <th scope="col">Equipment Name + Description</th>
+                            <th scope="col">Dimensions</th>
+                            <th scope="col">Per Trip Price</th>
+                            <th scope="col">Per Hr Price</th>
+                            <th scope="col">Full Day Price</th>
+                            <th scope="col">Rate After 5 Price</th>
+                            <th scope="col">Rate After 10 Price</th>
+                            <th scope="col">Sunday & PH Price</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table_container">
+                    </tbody>
+                </table>
+            </form>
+
+        </div>
+    </div>
+</body>
+
+<!-- $.ajax({
+    type: "GET",
+    url: "http://localhost:8080/api/v1/bid/",
+    headers: {
+        accept: "application/json",
+        "Access-Control-Allow-Origin": "*",
+    },
+    contentType: "application/json; charset=utf-8",
+    success: function (data) {
+        console.log(data);
+    },
+    error: function (errMsg) {
+        console.log(errMsg);
+    },
+}); -->
+
+<!-- var myObject2 = new Object();
+myObject2.userid = userid;
+myObject2.token = token;
+myObject2.email = email;
+myObject2.type = 0;
+
+console.log(myObject2);
+
+// Set userid in localstorage
+localStorage.setItem("userid", userid);
+
+var myString2 = JSON.stringify(myObject2);
+$.ajax({
+    type: "POST",
+    url:
+        "http://localhost:8080/api/v1/email?userid=" + userid + "&email=" + email + "&token=" + token + "&type=" + 0,
+    headers: {
+        accept: "application/json",
+        "Access-Control-Allow-Origin": "*",
+    },
+
+    data: myString2,
+    contentType: "application/json; charset=utf-8",
+    success: function (data) {
+        // alert("success on sending email: " + data);
+        console.log(data);
+    },
+    error: function (errMsg) {
+        // alert("error sending email: " + errMsg);
+        console.log(errMsg);
+    },
+}); -->

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- <?php include 'navbar.php' ?> -->
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#test").load("navbar.html");
+        });
+    </script>
+    <div id="test"></div>
+</head>
+
+<body>
+    </br></br>
+    <div class="container mb-5">
+        <div class="alert alert-info" role="alert">
+            <h1 class="display-6">View Bidding Results</h1>
+            <p class="lead">
+                Welcome back. View the results here.
+            </p>
+            <form method="post" action="" id="form_container">
+                <table class="table table-hover">
+
+                    <script>
+
+                        request_id = "";
+                        listing_id = "";
+
+                        $(document).ready(function () {
+
+                            // Firstly, we have to get ALL user requests based on the user ID.
+                            userid = localStorage.getItem("userid");
+                            $.ajax({
+                                async: false,
+                                type: "GET",
+                                url: "http://localhost:8080/api/v1/request/" + userid,
+                                headers: {
+                                    accept: "application/json",
+                                    "Access-Control-Allow-Origin": "*",
+                                },
+
+                                contentType: "application/json; charset=utf-8",
+                                success: function (data) {
+                                    console.log(data);
+
+                                    for (let index = 0; index < data.length; index++) {
+                                        element = data[index];
+
+                                        // Check that "active" MUST be false i.e the bidding round has ended!!
+                                        if (!element["active"]) {
+                                            requestid = element["requestid"]
+
+                                            $.ajax({
+                                                async: false,
+                                                type: "GET",
+                                                url: "http://localhost:8080/api/v1/bid/request/" + requestid,
+                                                headers: {
+                                                    accept: "application/json",
+                                                    "Access-Control-Allow-Origin": "*",
+                                                },
+
+                                                contentType: "application/json; charset=utf-8",
+                                                success: function (data2) {
+                                                    console.log(data2);
+
+                                                    output = "";
+                                                    for (let index2 = 0; index2 < data2.length; index2++) {
+                                                        // const element = data[index];
+                                                        // console.log(data2[index]);
+                                                        // if (data[index]["partnerRequest"] == true) {
+                                                        console.log(data2);
+                                                        console.log(data[index]["pricingType"]);
+                                                        bidID = data2[index2]["bidID"]
+                                                        pricingType = data[index]["pricingType"]
+                                                        request_id = data2[index]["requestID"]
+                                                        listing_id = data2[index]["listingIDList"]
+
+                                                        total_id = bidID + "|||||" + pricingType + "|||||" + request_id + "|||||" + listing_id;
+
+                                                        output += "" +
+                                                            "<tr>" +
+                                                            "<th scope='row'>" + bidID + "</th>" +
+                                                            "<td>" + request_id + "</td>" +
+                                                            "<td>" + listing_id + "</tds>" +
+                                                            "<td>" + data2[index2]["status"] + "</tds>" +
+                                                            "<td>" + data2[index2]["totalPrice"] + "</tds>" +
+                                                            "<td>" + pricingType + "</tds>" +
+                                                            "<td>" +
+                                                            "<a type='button' value='" + total_id + "' id='" + bidID + "' class='btn_choose_bid  btn btn-success btn-sm'>Choose Bid</a>" +
+                                                            "<a type='button' onclick=() id='invoice_btn" + bidID + "' class='invoice_btn btn btn-info btn-sm' value='" + total_id + "'>Generate Invoice</a>" +
+                                                            "</td>" + "";
+                                                        "</tr>";
+                                                    }
+
+                                                    $("#table_container").append(output);
+
+                                                    $(".invoice_btn").hide();
+                                                },
+                                                error: function (errMsg) {
+                                                    console.log(errMsg)
+                                                },
+                                            });
+                                        }
+                                    }
+
+
+                                },
+                                error: function (errMsg) {
+                                },
+                            });
+
+
+                        });
+
+
+                        $(document).ready(function () {
+                            $(".btn_choose_bid").click(function () {
+                                bidId = $(this).attr('id');
+                                cc = $(this).attr("value");
+                                dd = cc.split("|||||")
+                                new_request_id = parseInt(dd[2]);
+                                new_listing_id = dd[3];
+
+
+                                console.log(bidId);
+
+                                if (confirm("Confirm bid?")) {
+
+                                    // To change the bid to successful
+                                    $.ajax({
+                                        async: false,
+                                        type: "PUT",
+                                        url: "http://localhost:8080/api/v1/bid/status/" + bidId,
+                                        headers: {
+                                            accept: "application/json",
+                                            "Access-Control-Allow-Origin": "*",
+                                        },
+                                        // The key needs to match your method's input parameter (case-sensitive).
+                                        contentType: "application/json; charset=utf-8",
+                                        success: function (data) {
+                                            alert("Bid confirmed.");
+
+                                            $('#invoice_btn' + bidId + '').show();
+                                        },
+                                        error: function (errMsg) {
+                                        },
+                                    });
+
+                                    // Create a rental via POST
+                                    var myObject = new Object();
+                                    myObject.requestid = new_request_id;
+                                    myObject.listingid = new_listing_id;
+
+                                    var myString = JSON.stringify(myObject);
+                                    $.ajax({
+                                        async: false,
+                                        type: "POST",
+                                        url: "http://localhost:8080/api/v1/rental",
+                                        headers: {
+                                            accept: "application/json",
+                                            "Access-Control-Allow-Origin": "*",
+                                        },
+
+                                        data: myString,
+                                        contentType: "application/json; charset=utf-8",
+                                        success: function (data) {
+                                            console.log("success on posting data to DB: " + data);
+                                            console.log(data["token"]);
+                                            console.log(data["userid"]);
+                                        },
+                                        error: function (errMsg) {
+                                            console.log("error posting to db: " + errMsg);
+                                        },
+                                    });
+
+                                };
+
+                            });
+
+                            $(".invoice_btn").click(function () {
+                                cc = $(this).attr("value");
+                                dd = cc.split("|||||")
+                                
+                                
+                                // To send the invoice over DO/PO
+                                $.ajax({
+                                    async: false,
+                                    type: "GET",
+                                    url: "http://localhost:8080/api/v1/bid/generate-invoice/" + dd[0] + "?type=do",
+                                    headers: {
+                                        accept: "application/json",
+                                        "Access-Control-Allow-Origin": "*",
+                                    },
+
+                                    contentType: "application/json; charset=utf-8",
+                                    success: function (data) {
+
+                                        partner_idd = 0;
+                                        // 1. this ajax is to retrieve the partner id from listing id
+                                        $.ajax({
+                                            async: false,
+                                            type: "GET",
+                                            url: "http://localhost:8080/api/v1/listing/partner/" + dd[3][0],
+                                            headers: {
+                                                accept: "application/json",
+                                                "Access-Control-Allow-Origin": "*",
+                                            },
+                                            // The key needs to match your method's input parameter (case-sensitive).
+                                            contentType: "application/json; charset=utf-8",
+                                            success: function (data) {
+                                                partner_idd = data;
+
+                                                console.log("partneridd in success: " + partner_idd)
+                                            },
+                                            error: function (errMsg) {
+                                                console.log("error getting partner from listing ID : " + errMsg);
+                                                console.log(errMsg);
+                                            },
+                                        });
+
+                                        console.log(partner_idd);
+                                        // 2. this ajax is to retrieve the email from partner id
+                                        $.ajax({
+                                            async: false,
+                                            type: "GET",
+                                            url: "http://localhost:8080/api/v1/partner/email/" + partner_idd,
+                                            success: function (data) {
+                                                // alert("success getting email from partner id");
+                                                email = data;
+                                                // 3. Sending email to winning bidder !!!
+                                                var myObject2 = new Object();
+                                                myObject2.userid = bidId;
+                                                myObject2.email = email;
+                                                myObject2.type = 2;
+
+                                                var myString2 = JSON.stringify(myObject2);
+                                                $.ajax({
+                                                    async: false,
+                                                    type: "POST",
+                                                    url:
+                                                        "http://localhost:8080/api/v1/email?userid=" + bidId + "&email=" + email + "&type=3&token=10",
+                                                    headers: {
+                                                        accept: "application/json",
+                                                        "Access-Control-Allow-Origin": "*",
+                                                    },
+
+                                                    data: myString2,
+                                                    contentType: "application/json; charset=utf-8",
+                                                    success: function (data) {
+                                                        window.location.replace("http://localhost:8080/files/do/" + dd[0] + ".pdf");
+                                                    },
+                                                    error: function (errMsg) {
+                                                        alert("error sending email: " + errMsg);
+                                                        console.log(errMsg);
+                                                    },
+                                                });
+                                            },
+                                            error: function (errMsg) {
+                                                alert("error retrieving email from partner id : " + errMsg);
+                                            },
+                                        });
+
+
+                                    },
+                                    error: function (errMsg) {
+                                    },
+                                });
+
+                                // Create PO
+                                $.ajax({
+                                    async: false,
+                                    type: "GET",
+                                    url: "http://localhost:8080/api/v1/bid/generate-invoice/" + dd[0] + "?type=po",
+                                    headers: {
+                                        accept: "application/json",
+                                        "Access-Control-Allow-Origin": "*",
+                                    },
+
+                                    contentType: "application/json; charset=utf-8",
+                                    success: function (data) {
+
+                                        partner_idd = 0;
+                                        // 1. this ajax is to retrieve the partner id from listing id
+                                        $.ajax({
+                                            async: false,
+                                            type: "GET",
+                                            url: "http://localhost:8080/api/v1/listing/partner/" + dd[3][0],
+                                            headers: {
+                                                accept: "application/json",
+                                                "Access-Control-Allow-Origin": "*",
+                                            },
+                                            // The key needs to match your method's input parameter (case-sensitive).
+                                            contentType: "application/json; charset=utf-8",
+                                            success: function (data) {
+                                                partner_idd = data;
+                                            },
+                                            error: function (errMsg) {
+                                                console.log("error getting partner from listing ID : " + errMsg);
+                                            },
+                                        });
+
+
+                                        // 2. this ajax is to retrieve the email from partner id
+                                        $.ajax({
+                                            async: false,
+                                            type: "GET",
+                                            url: "http://localhost:8080/api/v1/partner/email/" + partner_idd,
+                                            success: function (data) {
+                                                // alert("success getting email from partner id");
+                                                email = data;
+                                                // 3. Sending email to winning bidder !!!
+                                                var myObject2 = new Object();
+                                                myObject2.userid = bidId;
+                                                myObject2.email = email;
+                                                myObject2.type = 2;
+
+                                                var myString2 = JSON.stringify(myObject2);
+                                                $.ajax({
+                                                    async: false,
+                                                    type: "POST",
+                                                    url:
+                                                        "http://localhost:8080/api/v1/email?userid=" + bidId + "&email=" + email + "&type=3&token=10",
+                                                    headers: {
+                                                        accept: "application/json",
+                                                        "Access-Control-Allow-Origin": "*",
+                                                    },
+
+                                                    data: myString2,
+                                                    contentType: "application/json; charset=utf-8",
+                                                    success: function (data) {
+                                                    },
+                                                    error: function (errMsg) {
+                                                        alert("error sending email: " + errMsg);
+                                                        console.log(errMsg);
+                                                    },
+                                                });
+                                            },
+                                            error: function (errMsg) {
+                                                alert("error retrieving email from partner id : " + errMsg);
+                                            },
+                                        });
+                                    },
+                                    error: function (errMsg) {
+                                    },
+                                });
+
+                            });
+                        })
+
+                    </script>
+
+                    <thead>
+                        <tr>
+                            <th scope="col">Bid ID</th>
+                            <th scope="col">Request ID</th>
+                            <th scope="col">Listing ID</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Bid Price</th>
+                            <th scope="col">Pricing Type</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table_container">
+                    </tbody>
+                </table>
+            </form>
+
+        </div>
+    </div>
+</body>

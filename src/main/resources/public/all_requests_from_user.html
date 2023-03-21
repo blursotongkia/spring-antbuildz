@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#test").load("navbar.html");
+        });
+    </script>
+    <div id="test"></div>
+</head>
+</head>
+
+<body>
+    </br>
+    <div class="container mb-5">
+        <div class="alert alert-info" role="alert">
+            <form method="POST" action="">
+                <h1 class="display-6">All trip requests from user</h1>
+                <br />
+
+                <script>
+
+                    data4 = null;
+                    data4_holder = null;
+                    $(document).ready(function () {
+
+                        var my_dict_of_equipment = {}
+                        output_rate_desc = "";
+                        output_for_rate = "";
+
+                        $.ajax({
+                            async: false,
+                            type: "GET",
+                            url: "http://localhost:8080/api/v1/request",
+                            headers: {
+                                accept: "application/json",
+                                "Access-Control-Allow-Origin": "*",
+                            },
+
+                            contentType: "application/json; charset=utf-8",
+                            success: function (data) {
+                                // console.log(data);
+
+                                // This ajax below is to retrieve all listings
+                                $.ajax({
+                                    async: false,
+                                    type: "GET",
+                                    url: "http://localhost:8080/api/v1/listing/" + localStorage.getItem("partner_id2"),
+                                    headers: {
+                                        accept: "application/json",
+                                        "Access-Control-Allow-Origin": "*",
+                                    },
+                                    // The key needs to match your method's input parameter (case-sensitive).
+                                    contentType: "application/json; charset=utf-8",
+                                    success: function (data2) {
+                                        my_dict_of_equipment = {}
+                                        data2.forEach(element => {
+                                            console.log(element)
+                                            equipmentID = element["equipmentID"];
+                                            // console.log(equipmentID);
+
+                                            if (equipmentID in my_dict_of_equipment) { // If equipment ID is not in the dict
+                                                value = my_dict_of_equipment[equipmentID]
+                                                my_dict_of_equipment[equipmentID] = value + 1;
+                                            } else {
+                                                my_dict_of_equipment[equipmentID] = 1;
+                                            }
+                                            // console.log(my_dict_of_equipment);
+                                        });
+
+                                    },
+                                    error: function (errMsg) {
+                                        console.log("error GETTING listing from db: " + errMsg);
+                                    },
+                                });
+
+                                output = "";
+                                for (let index = 0; index < data.length; index++) {
+                                    element = data[index];
+
+                                    // This ajax below is to write into the HTML DOM
+                                    $.ajax({
+                                        async: false,
+                                        type: "GET",
+                                        url: "http://localhost:8080/api/v1/equipment/equipment/" + element["equipmentID"],
+                                        headers: {
+                                            accept: "application/json",
+                                            "Access-Control-Allow-Origin": "*",
+                                        },
+                                        // The key needs to match your method's input parameter (case-sensitive).
+                                        contentType: "application/json; charset=utf-8",
+                                        success: function (data2) {
+
+
+
+                                            requested_equipment_id = element["equipmentID"];
+                                            input_id_name = "bids" + index;
+
+                                            // Reset the no. of equipment avail for rent for each loop
+                                            no_of_equipment_available_for_rent = 0
+
+                                            // console.log(my_dict_of_equipment);
+                                            // Check if you have at least 1 equipment:
+                                            if (requested_equipment_id in my_dict_of_equipment) {
+                                                no_of_equipment_available_for_rent = my_dict_of_equipment[requested_equipment_id]
+                                            }
+
+
+
+                                            // This ajax below is to retrieve breakdown costs via the equipment ID
+                                            $.ajax({
+                                                async: false,
+                                                type: "GET",
+                                                url: "http://localhost:8080/api/v1/request/breakdown/" + element["requestid"],
+                                                headers: {
+                                                    accept: "application/json",
+                                                    "Access-Control-Allow-Origin": "*",
+                                                },
+                                                // The key needs to match your method's input parameter (case-sensitive).
+                                                contentType: "application/json; charset=utf-8",
+                                                success: function (data4) {
+                                                    partnerid_from_ls = localStorage.getItem("partner_id2");
+
+                                                    console.log(data4)
+                                                    data4_holder = data4; // For suggested rate later on
+
+                                                    flavour_text_suggested_rate = ""
+
+                                                    if (data4["Pricing Type"] == "Per Trip") {
+                                                        output_rate_desc = "";
+
+                                                        flavour_text_suggested_rate = " per trip</br> "
+                                                        output_for_rate = data4["Rate"]
+
+                                                        total_cost = output_for_rate * data4["Quantity"];
+
+                                                        output_rate_desc += "<small class='lead' id='per_trip_text" + data4["Id"] + "'>Amount is $" + output_for_rate + " for " + data4["Quantity"] + " equipment per trip which amounts to <strong>$" + total_cost + "</strong>.</small></br>";
+
+                                                    } else if (data4["Pricing Type"] == "Full Day") {
+                                                        output_rate_desc = "";
+
+                                                        flavour_text_suggested_rate = " for full day pricing</br> "
+                                                        output_for_rate = data4["Rate"]
+                                                        total_cost = data4["Quantity"] * data4_holder["Days"] * output_for_rate;
+                                                        output_rate_desc += "<small class='lead' id='per_trip_text" + data4["Id"] + "'>Amount is $" + output_for_rate + " per day per equipment per trip, renting for " + data4_holder["Days"] + " days and " + + data4["Quantity"] + " equipment(s) which amounts to <strong>$" + total_cost + "</strong>.</br>";
+
+                                                    } else if (data4["Pricing Type"] == "Custom") {
+                                                        output_rate_desc = "";
+
+                                                        flavour_text_suggested_rate = " for your customised request</br> "
+
+                                                        time_after_3_hrs = data4["Time After 3Hrs"];
+
+                                                        if (time_after_3_hrs != 0) {
+                                                            output_rate_desc += "<small class='lead' id='per_trip_text" + data4["Id"] + "'>Total time After 3Hrs: " + time_after_3_hrs + "hrs with a cost of " + data4["Rate4"] + "/hr.</small></br></br>"
+                                                        }
+
+                                                        sun_and_ph_hr = data4["SUN & PH (/Hr)"];
+
+                                                        if (sun_and_ph_hr != 0) {
+                                                            output_rate_desc += "<small class='lead' id='per_trip_text" + data4["Id"] + "'>Total time calculated for SUN & PH (/Hr): " + sun_and_ph_hr + "hrs</small></br></br>"
+                                                        }
+
+
+                                                        rate_after_5pm = data4["Rate after 5pm (1.5x)"];
+
+                                                        if (rate_after_5pm != 0) {
+                                                            output_rate_desc += "<small class='lead' id='per_trip_text" + data4["Id"] + "'>Rate after 5pm (1.5x): " + rate_after_5pm + "hrs</small></br></br>";
+                                                        }
+
+                                                        rate_after_10pm_onwards = data4["Rate after 10pm Onwards (2x)"];
+
+                                                        if (rate_after_10pm_onwards != 0) {
+                                                            output_rate_desc += "<small class='lead' id='per_trip_text" + data4["Id"] + "'>Rate after 10pm Onwards (2x): " + rate_after_10pm_onwards + "hrs</small></br></br>"
+                                                        }
+
+                                                        output_for_rate = "";
+                                                    }
+
+                                                },
+                                                error: function (errMsg) {
+                                                    console.log("error GETTING listing from db: " + errMsg);
+                                                },
+                                            });
+
+                                            listing_id = "";
+                                            listing_container = ""
+                                            // Show listing IDs
+                                            $.ajax({
+                                                async: false,
+                                                type: "GET",
+                                                url: "http://localhost:8080/api/v1/listing/" + partnerid_from_ls + "/" + element["equipmentID"],
+                                                headers: {
+                                                    accept: "application/json",
+                                                    "Access-Control-Allow-Origin": "*",
+                                                },
+
+                                                contentType: "application/json; charset=utf-8",
+                                                success: function (data5) {
+                                                    listing_id_from_api = data5[0]
+                                                    console.log(listing_id_from_api)
+                                                    for (let index = 0; index < data5.length; index++) {
+                                                        element9 = data5[index];
+                                                        listing_container += "<div class='checkbox form-check'><input value='"+ element9 +"' name='listing_checkbox" + element["equipmentID"] + "' id='flexCheckDefault" + index + element["equipmentID"] + "' class='form-check-input checkbox" + element["equipmentID"] + "' type='checkbox' onclick='return ValidatePetSelection(" + element["quantity"] + ", " + element["equipmentID"] + ");submitData()'><label class='form-check-label' for='flexCheckDefault" + index + element["equipmentID"] + "'>Choose Listing No. " + element9 + "</label></div>"
+                                                    
+                                                        
+                                                    }
+
+                                                },
+                                                error: function (errMsg) {
+                                                },
+                                            });
+
+                                            console.log(listing_container);
+
+                                            no_of_days = null;
+
+                                            pricing_type_send2 = 0;
+                                            pricing_type_send = data4_holder["Pricing Type"];
+
+                                            if (pricing_type_send == "Per Trip") {
+                                                pricing_type_send2 = 0
+                                            }
+                                            else if (pricing_type_send == "Full Day") {
+                                                pricing_type_send2 = 1
+
+                                                no_of_days = data4_holder["Days"];
+
+                                            } else if (pricing_type_send == "Custom") {
+                                                pricing_type_send2 = 2
+                                            }
+
+                                            quantity_they_want = element["quantity"]
+
+
+                                            amt_of_equipment_partner_has = my_dict_of_equipment[requested_equipment_id]
+
+
+
+                                            checkbox_output = "You have " + amt_of_equipment_partner_has + " equipment(s) and the renter requires " + element["quantity"] + " equipment(s). Which listing shall you choose?";
+
+
+
+                                            if (requested_equipment_id in my_dict_of_equipment && my_dict_of_equipment[requested_equipment_id] >= element["quantity"]) { // If u have the equipment that is requested by user
+                                                $("#container").append("" +
+                                                    "<div class='col'>" +
+                                                    "<div class='card h-100 text-center'>" +
+                                                    "<img src='" + data2["url"] + "'" +
+                                                    "class='thumbnail_styling card-img-top justify-content-center align-items-center'>" +
+                                                    "<div class='card-body'>" +
+                                                    "<h5 class='card-title'>" + data2["equipmentName"] + "</h5>" + "" +
+                                                    "<div class='form'>" +
+                                                    "<h6 class='lead'>Pricing Type: " + element["pricingType"] + "</h6>" +
+                                                    "<div class='alert alert-success' role='alert'><small class='text-muted'>Wants to start renting on: </small></br>(MM/DD/YYYY)</br><small>" + element["startDateTime"] + "</small>" +
+                                                    "</br>" +
+                                                    "<small class='text-muted'>Wants to end renting on: </small></br><small>" + element["endDateTime"] + "</small></div>" +
+                                                    "<div class='alert alert-warning' role='alert'><h6 class='lead'>Special Request: </br> " + element["specialRequest"] + "</h6></div>" +
+
+                                                    "<div class='alert alert-primary' role='alert'><small>They want to rent " + element["quantity"] + " of these.</small></br><hr>" +
+                                                    "<small>You have " + no_of_equipment_available_for_rent + " of this equipment listed for rent.</small></div>" +
+                                                    "<small>Equipment ID: " + data2["equipmentID"] + "</br> Request ID: " + element["requestid"] + "</small></br>" +
+                                                    "<small>Listing ID: " + listing_id_from_api + "</br></small><hr>" +
+
+                                                    //Add the checkbox and dialog
+                                                    // checkbox_output +
+                                                    listing_container +
+                                                    "<hr>" +
+                                        
+                                                    output_rate_desc +
+
+                                                    "</div>" +
+                                                    "</div>" +
+                                                    "<div class='card-footer'>" +
+                                                    "<small>Suggested Bids" + flavour_text_suggested_rate + ": $" + output_for_rate + "</small>" +
+                                                    "<p>Your bid:</p>" +
+                                                    "<div class='input-group mb-3'>" +
+                                                    "<input onchange='changeText(this.value, " + element["requestid"] + ", " + pricing_type_send2 + ", " + quantity_they_want + "," + no_of_days + ")' type='number' id='" + input_id_name + "' class='btn_submit_bids form-control' placeholder='eg. $5'" +
+                                                    "aria-label='Recipient's username' aria-describedby='basic-addon2'>" +
+                                                    "<span class='input-group-text' id='basic-addon2'>S$/equipment</span>" +
+                                                    "</div>" +
+
+                                                    "<a type='button' onclick=getBids('" + data2["equipmentID"] + "')  id='submit_bid_price' class='btn btn-success'>Submit bid price</a>" +
+
+                                                    "</div>" +
+                                                    "</div>" +
+                                                    "</div>");
+                                            }
+                                            else { // You dont have the equipment that is requested by user
+                                                $("#container").append("" +
+                                                    "<div class='col'>" +
+                                                    "<div class='card h-100 text-center'>" +
+                                                    "<img src='" + data2["url"] + "'" +
+                                                    "class='thumbnail_styling card-img-top justify-content-center align-items-center'>" +
+                                                    "<div class='card-body'>" +
+                                                    "<h5 class='card-title'>" + data2["equipmentName"] + "</h5>" + "" +
+                                                    "<div class='form'>" +
+                                                    "<h6 class='lead'>Pricing Type: " + element["pricingType"] + "</h6>" +
+                                                    "<div class='alert alert-success' role='alert'><small class='text-muted'>Wants to start renting on: </small></br>(MM/DD/YYYY)</br><small>" + element["startDateTime"] + "</small>" +
+                                                    "</br>" +
+                                                    "<small class='text-muted'>Wants to end renting on: </small></br><small>" + element["endDateTime"] + "</small></div>" +
+                                                    "<div class='alert alert-warning' role='alert'><h6 class='lead'>Special Request: </br> " + element["specialRequest"] + "</h6></div>" +
+
+                                                    "<div class='alert alert-danger' role='alert'><small>They want to rent " + element["quantity"] + " of these.</small></br><hr>" +
+                                                    "<small> but you have " + no_of_equipment_available_for_rent + " of this equipment listed for rent.</small></div>" +
+
+                                                    "<small>Equipment ID: " + data2["equipmentID"] + "</br> Request ID: " + element["requestid"] + "</small></br>" +
+                                                    "<small>Listing ID: " + data2["equipmentID"] + listing_id + "</br></small><hr>" +
+                                                    output_rate_desc +
+
+                                                    "</div>" +
+                                                    "</div>" +
+                                                    "<div class='card-footer'>" +
+                                                    "<small>Suggested Bids" + flavour_text_suggested_rate + ": $" + output_for_rate + "</small>" +
+                                                    // "<p>Your bid:</p>" +
+                                                    "<div class='input-group mb-3'>" +
+                                                    "<input disabled type='number' id='" + input_id_name + "' class='btn_submit_bids form-control' placeholder='eg. $5'" +
+                                                    "aria-label='Recipient's username' aria-describedby='basic-addon2'>" +
+                                                    "<span class='input-group-text' id='basic-addon2'>S$/equipment</span>" +
+                                                    "</div>" +
+                                                    "<a hidden type='button' onclick=getBids('" + input_id_name + "|||||" + data2["equipmentID"] + "|||||" + element["requestid"] + "')  id='submit_bid_price' class=' btn btn-success'>Submit bid price</a>" +
+                                                    "</div>" +
+                                                    "</div>" +
+                                                    "</div>");
+                                            }
+                                        },
+                                        error: function (errMsg) {
+                                            // alert("error GETTING from db: " + errMsg);
+                                        },
+                                    });
+                                }
+                            },
+                            error: function (errMsg) {
+                                // alert("error GETTING from db: " + errMsg);
+                            },
+                        });
+                    });
+
+                    valuess = ""
+                    request_idss = ""
+                    pricingType_for_bid_submission = 0
+
+                    // This is to change the text's to the new bidded price:
+                    function changeText(value_in_textbox, request_id, pricingType, quantity_they_want, no_of_days) {
+                        valuess = value_in_textbox;
+                        request_idss = request_id;
+                        pricingType_for_bid_submission = pricingType;
+                        if (pricingType == 0) { // Per trip
+                            new_total_cost = value_in_textbox * quantity_they_want;
+                            $("#per_trip_text" + request_id + "").html("Amount is $" + value_in_textbox + " for " + quantity_they_want + " equipment per trip which amounts to <strong>$" + new_total_cost + "</strong>.</br>");
+
+                        } else if (pricingType == 1) { // Full Day
+                            new_total_cost = value_in_textbox * quantity_they_want * no_of_days;
+                            $("#per_trip_text" + request_id + "").html("Amount is $" + value_in_textbox + " per day per equipment per trip, renting for " + no_of_days + " days and " + + quantity_they_want + " equipment(s) which amounts to <strong>$" + new_total_cost + "</strong>.</br>");
+
+
+                        } else if (pricingType == 2) {
+
+                        }
+
+
+                    }
+
+
+                    function getBids(equipment_id) {
+
+                        o = equipment_id;
+                        var checkBoxValues = [];
+                        $.each($("input[name='listing_checkbox"+ o +"']:checked"), function () {
+                            checkBoxValues.push(parseInt( $(this).val()));
+                        });
+
+                        console.log(checkBoxValues.toString());
+
+
+                        var myObject = new Object();
+
+                        myObject.requestID = request_idss;
+                        myObject.totalPrice = new_total_cost;
+                        myObject.listingIDList = checkBoxValues.toString();
+
+                        if (pricingType_for_bid_submission == 0) { // per trip
+                            myObject.perTripPrice = valuess
+
+                        } else if (pricingType_for_bid_submission == 1) { // full day
+                            myObject.fullDayPrice = valuess
+
+                        }
+
+                        var myString = JSON.stringify(myObject);
+
+                        $.ajax({
+                            type: "POST",
+                            url: "http://localhost:8080/api/v1/bid",
+                            headers: {
+                                accept: "application/json",
+                                "Access-Control-Allow-Origin": "*",
+                            },
+                            // The key needs to match your method's input parameter (case-sensitive).
+                            data: myString,
+                            contentType: "application/json; charset=utf-8",
+                            success: function (data) {
+                                alert("Successful bid done.");
+                                console.log(data["token"]);
+                                console.log(data["userid"]);
+                            },
+                            error: function (errMsg) {
+                                // alert("error posting to db: " + errMsg);
+                            },
+                        });
+                    }
+
+                    function ValidatePetSelection(max_quantity_of_listings, equipmentID) {
+                        // alert(max_quantity_of_listings + " "+ equipmentID)
+                        var checkboxes = document.getElementsByName("listing_checkbox" + equipmentID);
+                        var numberOfCheckedItems = 0;
+                        for (var i = 0; i < checkboxes.length; i++) {
+                            if (checkboxes[i].checked)
+                                numberOfCheckedItems++;
+                        }
+                        if (numberOfCheckedItems > max_quantity_of_listings) {
+                            alert("You can't select more than " + max_quantity_of_listings + " listing(s) as they only want " + max_quantity_of_listings
+                                + "!");
+                            return false;
+                        }
+                    }
+
+                </script>
+
+                <div id="container" class='row row-cols-1 row-cols-md-3 g-4'>
+                </div>
+
+                <br />
+
+                <a type='submit' class='btn btn-danger'>Cancel</a>
+            </form>
+
+
+        </div>
+    </div>
+    </div>
+
+
+</body>

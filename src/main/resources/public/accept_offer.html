@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#test").load("navbar.html");
+        });
+    </script>
+    <div id="test"></div>
+</head>
+
+<body>
+    <script>
+            $(document).ready(function () {
+                $.ajax({
+                    type: "GET",
+                    url: "http://localhost:8080/api/v1/bid/",
+                    headers: {
+                        accept: "application/json",
+                        "Access-Control-Allow-Origin": "*",
+                    },
+                    contentType: "application/json; charset=utf-8",
+                    success: function (data) {
+                        console.log(data);
+                        output = "";
+                        for (let index = 0; index < data.length; index++) {
+                            const element = data[index];
+                            console.log(data[index]["partnerRequest"]);
+                            if (data[index]["partnerRequest"] == true) {
+                                output += "" +
+                            "<tr>" +
+                            "<th scope='row'>" + data[index]["userid"] + "</th>" +
+                            "<td>"+ data[index]["username"] +"</td>" +
+                            "<td>"+ data[index]["email"] +"</tds>" +
+                            "<td>" +
+                            "<a type='button' onclick='doX(" + data[index]["userid"] +")' value='testing' id='approve_user_btn' class='btn btn-success btn-sm'>Approve User</a>" +
+                            // "<a type='button' id='reject_user_btn' class='btn btn-danger btn-sm'>Reject User</a>" +
+                            "</td>" +"";
+                            "</tr>";
+                            }
+
+                        }
+                        $("#table_container").append(output);
+
+
+                    },
+                    error: function (errMsg) {
+
+                    },
+                });
+            });
+    </script>
+</body>
+</html>
